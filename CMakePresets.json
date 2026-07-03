@@ -1,0 +1,94 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 25, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "_base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "win-mingw",
+      "displayName": "Windows / MinGW-w64 GCC",
+      "inherits": "_base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER":   "gcc",
+        "CMAKE_CXX_COMPILER": "g++"
+      },
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
+    },
+    {
+      "name": "win-msvc",
+      "displayName": "Windows / MSVC (x64)",
+      "inherits": "_base",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER":   "cl",
+        "CMAKE_CXX_COMPILER": "cl"
+      },
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
+    },
+    {
+      "name": "win-clang-cl",
+      "displayName": "Windows / clang-cl (x64)",
+      "inherits": "_base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER":   "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl"
+      },
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
+    },
+    {
+      "name": "linux-gcc",
+      "displayName": "Linux / GCC (host arch)",
+      "inherits": "_base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER":   "gcc",
+        "CMAKE_CXX_COMPILER": "g++"
+      },
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" }
+    },
+    {
+      "name": "linux-clang",
+      "displayName": "Linux / Clang (host arch)",
+      "inherits": "_base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER":   "clang",
+        "CMAKE_CXX_COMPILER": "clang++"
+      },
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" }
+    },
+    {
+      "name": "linux-gcc-arm64",
+      "displayName": "Linux / GCC aarch64 (run inside arm64 container)",
+      "inherits": "_base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER":   "gcc",
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_SYSTEM_PROCESSOR": "aarch64"
+      },
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" }
+    }
+  ],
+  "buildPresets": [
+    { "name": "win-mingw",       "configurePreset": "win-mingw" },
+    { "name": "win-msvc",        "configurePreset": "win-msvc" },
+    { "name": "win-clang-cl",    "configurePreset": "win-clang-cl" },
+    { "name": "linux-gcc",       "configurePreset": "linux-gcc" },
+    { "name": "linux-clang",     "configurePreset": "linux-clang" },
+    { "name": "linux-gcc-arm64", "configurePreset": "linux-gcc-arm64" }
+  ],
+  "testPresets": [
+    { "name": "win-mingw",       "configurePreset": "win-mingw",       "output": { "outputOnFailure": true } },
+    { "name": "win-msvc",        "configurePreset": "win-msvc",        "output": { "outputOnFailure": true } },
+    { "name": "win-clang-cl",    "configurePreset": "win-clang-cl",    "output": { "outputOnFailure": true } },
+    { "name": "linux-gcc",       "configurePreset": "linux-gcc",       "output": { "outputOnFailure": true } },
+    { "name": "linux-clang",     "configurePreset": "linux-clang",     "output": { "outputOnFailure": true } },
+    { "name": "linux-gcc-arm64", "configurePreset": "linux-gcc-arm64", "output": { "outputOnFailure": true } }
+  ]
+}

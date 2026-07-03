@@ -1,0 +1,105 @@
+###############################################################################
+# PixelForge — Python wheel build configuration
+#
+# Backend: scikit-build-core. It runs CMake under the hood and turns the
+# resulting install tree into a PEP 427 wheel and a PEP 517 sdist.
+#
+# Layout produced (Windows wheel):
+#   site-packages/pixelforge/__init__.py
+#   site-packages/pixelforge/_pixelforge.cp313-win_amd64.pyd
+#   site-packages/pixelforge/libpixelforge.dll
+#   site-packages/pixelforge/plugins/pf_{grayscale,invert,blur,sharpen,edge}.dll
+###############################################################################
+
+[build-system]
+requires      = ["scikit-build-core>=0.10", "pybind11>=2.13"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name            = "pixelforge"
+version         = "0.1.0"
+description     = "Cross-platform image processing SDK with C++ runtime + Python bindings"
+readme          = "README.md"
+license         = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors         = [{ name = "PixelForge Authors" }]
+keywords        = ["image-processing", "cmake", "pybind11", "plugins", "sdk"]
+classifiers     = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Software Development :: Libraries",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+]
+dependencies = [
+    "numpy>=1.23",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.urls]
+Homepage = "https://github.com/example/pixelforge"
+
+###############################################################################
+# scikit-build-core configuration
+###############################################################################
+[tool.scikit-build]
+# Pin to a CMake ≥3.25 already on the system if available (so we don't refetch).
+cmake.version    = ">=3.25"
+ninja.version    = ">=1.10"
+build-dir        = "build/wheel/{wheel_tag}"
+minimum-version  = "build-system.requires"
+
+# Wheel layout: tell scikit-build-core where the pure-Python source lives
+# and that everything CMake `install()`s should be packaged.
+wheel.packages   = ["python/pixelforge"]
+wheel.install-dir = "."          # CMake DESTINATION "pixelforge" -> site-packages/pixelforge
+wheel.exclude    = ["**/*.pdb", "**/*.lib", "**/*.exp"]
+
+# Re-run CMake whenever any of these files change (sdist/wheel rebuilds).
+sdist.include = [
+    "CMakeLists.txt", "CMakePresets.json",
+    "cmake/**", "include/**", "src/**", "plugins/**", "third_party/**",
+    "python/**", "tests/**", "scripts/**",
+    "LICENSE", "README.md",
+]
+sdist.exclude = ["build/**", ".vscode/**", ".pytest_cache/**", "**/__pycache__/**"]
+
+# Strip in release wheels but keep symbols in debug builds.
+install.strip = true
+
+# Logging during PEP 517 build.
+logging.level = "INFO"
+
+###############################################################################
+# CMake options forwarded into the wheel build
+#
+# Keep the wheel small and fast to build by disabling everything that's
+# not part of the Python surface:
+#   - tests        (no GoogleTest fetch, no pytest-in-cmake)
+#   - nanobind     (the parallel binding lives in dev builds only)
+#   - CLI exe      (`pixelforge.exe` ships in the native installer instead)
+###############################################################################
+[tool.scikit-build.cmake.define]
+PIXELFORGE_BUILD_TESTS    = "OFF"
+PIXELFORGE_BUILD_PYTHON   = "ON"
+PIXELFORGE_BUILD_NANOBIND = "OFF"
+PIXELFORGE_BUILD_CLI      = "OFF"
+
+###############################################################################
+# Pytest config — used by `pytest` outside of CTest (e.g. against an
+# installed wheel inside a venv).
+###############################################################################
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths  = ["python/tests"]
+addopts    = "-ra"
